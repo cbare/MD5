@@ -1,5 +1,7 @@
 package cbare.md5;
 
+import java.io.UnsupportedEncodingException;
+
 
 public class MD5 {
 
@@ -135,9 +137,9 @@ public class MD5 {
 		return byteArray;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		MD5 md5 = new MD5();
-		System.out.println(Bits.toHexString(md5.hash("".getBytes())));
-		System.out.println(Bits.toHexString(md5.hash("".getBytes())));
+		System.out.println(Bits.toHexString(md5.hash("".getBytes("US-ASCII"))));
+		System.out.println(Bits.toHexString(md5.hash("The quick brown fox jumps over the lazy dog".getBytes("US-ASCII"))));
 	}
 }
