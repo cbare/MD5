@@ -43,6 +43,10 @@ public class Bits {
 		}
 	}
 
+    public static int leftRotate(int a, int s) {
+        return (a << s) | (a >>> (32-s));
+    }
+
 
 	public static String toHexString(byte[] b) {
 		StringBuilder sb = new StringBuilder("[");
@@ -52,6 +56,15 @@ public class Bits {
 		sb.append("]");
 		return sb.toString();
 	}
+
+    public static Object toHexString(int[] data) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i=0; i<data.length; i++) {
+            sb.append(String.format("%04x",data[i]));
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 
 	public static String arrayToString(int[] a) {
 		StringBuilder sb = new StringBuilder("[");
@@ -85,5 +98,6 @@ public class Bits {
 		int j = toInt(b,0);
 		System.out.println(Integer.toHexString(j));
 	}
+
 
 }
