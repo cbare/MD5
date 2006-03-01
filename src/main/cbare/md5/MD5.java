@@ -73,53 +73,46 @@ public class MD5 {
         // Round 1
 		for (; i<16; i++) {
             k = offset + i;
-            temp = Bits.leftRotate(a + f(b,c,d) + ac[i] + x[k], s[i]) + b;
-            int z = a + f(b,c,d) + ac[i] + x[k];
-            int r = Bits.leftRotate(z, s[i]);
-            System.out.printf("%2d: %2d %2d, %08x, %08x, %08x, %08x\n", i, k, s[i], ac[i], x[k], z, r);
+            temp = rev(x[k]);
+            temp = Bits.leftRotate(a + f(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
             b = temp;
+            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
         // Round 2
 		for (; i<32; i++) {
             k = offset + ((5*i + 1) % 16);
-            temp = Bits.leftRotate(a + g(b,c,d) + ac[i] + x[k], s[i]) + b;
-            int z = a + g(b,c,d) + ac[i] + x[k];
-            int r = Bits.leftRotate(z, s[i]);
-            System.out.printf("%2d: %2d %2d, %08x, %08x, %08x, %08x\n", i, k, s[i], ac[i], x[k], z, r);
+            temp = Bits.leftRotate(a + g(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
             b = temp;
+            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
         // Round 3
 		for (; i<48; i++) {
             k = offset + ((3*i + 5) % 16);
-            temp = Bits.leftRotate(a + h(b,c,d) + ac[i] + x[k], s[i]) + b;
-            int z = a + h(b,c,d) + ac[i] + x[k];
-            int r = Bits.leftRotate(z, s[i]);
-            System.out.printf("%2d: %2d %2d, %08x, %08x, %08x, %08x\n", i, k, s[i], ac[i], x[k], z, r);
+            temp = Bits.leftRotate(a + h(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
             b = temp;
+            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
         // Round 4
 		for (; i<64; i++) {
             k = offset + ((7*i) % 16);
-            temp = Bits.leftRotate(a + i(b,c,d) + ac[i] + x[k], s[i]) + b;
-            int z = a + i(b,c,d) + ac[i] + x[k];
-            int r = Bits.leftRotate(z, s[i]);
-            System.out.printf("%2d: %2d %2d, %08x, %08x, %08x, %08x\n", i, k, s[i], ac[i], x[k], z, r);
+            temp = Bits.leftRotate(a + i(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
             b = temp;
+            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
 		h[0] += a;
@@ -127,10 +120,14 @@ public class MD5 {
 		h[2] += c;
 		h[3] += d;
 	}
+	
+	public int rev(int x) {
+		return (x>>>24) | ((x>>>8) &0x0000FF00) | ((x<<8) & 0x00FF0000) | (x<<24);
+	}
 
 	public byte[] pad(byte[] data) {
 		int len = data.length;
-		int paddedLen = (len/64)*64 + 64;
+		int paddedLen = (len/64)*64  + 64;
 
 		if (paddedLen - len < 9)
 			paddedLen += 64;
