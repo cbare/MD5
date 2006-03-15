@@ -1,5 +1,6 @@
 package cbare.md5;
 
+import cbare.md5.MD5;
 import junit.framework.TestCase;
 
 public class TestMD5 extends TestCase {

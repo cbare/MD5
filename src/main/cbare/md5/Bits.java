@@ -10,6 +10,16 @@ public class Bits {
 		| (b[offset+3] & 0xFF);
 	}
 
+	/**
+	 * convert a byte array to an int in most-significant-byte
+	 * first order
+	 */
+	public static int toBigEndianInt(byte[] bytes, int offset) {
+		return ((bytes[offset+3] & 0xFF) << 24)
+		| ((bytes[offset+2] & 0xFF) << 16)
+		| ((bytes[offset+1] & 0xFF) << 8)
+		| (bytes[offset] & 0xFF);
+	}
 
 	public static byte[] toBytes(long l) {
 		byte[] b = new byte[8];
@@ -41,6 +51,13 @@ public class Bits {
 			b[offset+i] = (byte)(a & 0x000000FF);
 			a = a >>> 8;
 		}
+	}
+
+	public static void toBytesBigEndian(int a, byte[] bytes, int offset) {
+		bytes[offset+3]   = (byte)((a >>> 24) & 0x000000FF);
+		bytes[offset+2] = (byte)((a >>> 16) & 0x000000FF);
+		bytes[offset+1] = (byte)((a >>> 8) & 0x000000FF);
+		bytes[offset] = (byte)((a) & 0x000000FF);
 	}
 
     public static int leftRotate(int a, int s) {

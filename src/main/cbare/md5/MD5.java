@@ -1,6 +1,11 @@
 package cbare.md5;
 
-
+/**
+ * needs update & finalize
+ * md5 state
+ * @author christopherbare
+ *
+ */
 public class MD5 {
 
 	private static int[] s = {
@@ -164,17 +169,15 @@ public class MD5 {
 
 		// hash each block
 		int[] h = h0;
-        System.out.printf("--- %08x%08x%08x%08x\n", h[0], h[1], h[2], h[3]);
 		// a block is 512 bits or 64 bytes or 16 32-bit ints.
 		for (int i=0; i<len; i+=16) {
 			hashBlock(h, paddedData, i);
-            System.out.printf("--- %08x%08x%08x%08x\n", h[0], h[1], h[2], h[3]);
 		}
 
 		// make a 16 byte array (128 bits)
 		byte[] byteArray = new byte[16];
 		for (int i=0; i<4; i++) {
-			Bits.toBytes(h[i], byteArray, i*4);
+			Bits.toBytesBigEndian(h[i], byteArray, i*4);
 		}
 
 		return byteArray;
@@ -182,13 +185,9 @@ public class MD5 {
 
 	public static void main(String[] args) throws Exception {
 		MD5 md5 = new MD5();
-//        System.out.println(Integer.toBinaryString(0x12345678));
-//        System.out.println(Integer.toBinaryString(0x23456789));
-//        System.out.println(Integer.toBinaryString(0x89abcdef));
-//        System.out.println(Integer.toBinaryString(md5.f(0x12345678, 0x23456789, 0x89abcdef)));
         
         System.out.println(Bits.toHexString(md5.hash("".getBytes("US-ASCII"))));
-//        System.out.println(Bits.toHexString(md5.hash("a".getBytes("US-ASCII"))));
+        System.out.println(Bits.toHexString(md5.hash("a".getBytes("US-ASCII"))));
 //        System.out.println(Bits.toHexString(md5.hash("The quick brown fox jumps over the lazy dog".getBytes("US-ASCII"))));
 //        System.out.println(Bits.toHexString(md5.hash("The quick brown fox jumps over the lazy cog".getBytes("US-ASCII"))));
 	}
