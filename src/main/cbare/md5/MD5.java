@@ -57,6 +57,17 @@ public class MD5 {
 		int i = 0, k;
         
         {
+            StringBuilder sb = new StringBuilder("[");
+            for (int m=0; m<x.length; m++) {
+                sb.append(String.format("%08x",Bits.rev(x[m])));
+            }
+            sb.append("]");
+            System.out.println(sb.toString());
+        }
+        
+        if (1==1) return;
+        
+        {
         System.out.println("------------");
         
         int tf = f(b,c,d);
@@ -78,8 +89,8 @@ public class MD5 {
         // Round 1
 		for (; i<16; i++) {
             k = offset + i;
-            temp = rev(x[k]);
-            temp = Bits.leftRotate(a + f(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
+            temp = Bits.rev(x[k]);
+            temp = Bits.leftRotate(a + f(b,c,d) + ac[i] + Bits.rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
@@ -90,7 +101,7 @@ public class MD5 {
         // Round 2
 		for (; i<32; i++) {
             k = offset + ((5*i + 1) % 16);
-            temp = Bits.leftRotate(a + g(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
+            temp = Bits.leftRotate(a + g(b,c,d) + ac[i] + Bits.rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
@@ -101,7 +112,7 @@ public class MD5 {
         // Round 3
 		for (; i<48; i++) {
             k = offset + ((3*i + 5) % 16);
-            temp = Bits.leftRotate(a + h(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
+            temp = Bits.leftRotate(a + h(b,c,d) + ac[i] + Bits.rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
@@ -112,7 +123,7 @@ public class MD5 {
         // Round 4
 		for (; i<64; i++) {
             k = offset + ((7*i) % 16);
-            temp = Bits.leftRotate(a + i(b,c,d) + ac[i] + rev(x[k]), s[i]) + b;
+            temp = Bits.leftRotate(a + i(b,c,d) + ac[i] + Bits.rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
@@ -124,10 +135,6 @@ public class MD5 {
 		h[1] += b;
 		h[2] += c;
 		h[3] += d;
-	}
-	
-	public int rev(int x) {
-		return (x>>>24) | ((x>>>8) &0x0000FF00) | ((x<<8) & 0x00FF0000) | (x<<24);
 	}
 
 	public byte[] pad(byte[] data) {

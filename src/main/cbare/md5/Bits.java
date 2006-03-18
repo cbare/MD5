@@ -77,23 +77,39 @@ public class Bits {
     public static Object toHexString(int[] data) {
         StringBuilder sb = new StringBuilder("[");
         for (int i=0; i<data.length; i++) {
-            sb.append(String.format("%04x",data[i]));
+            sb.append(String.format("%08x",data[i]));
         }
         sb.append("]");
         return sb.toString();
     }
 
-	public static String arrayToString(int[] a) {
-		StringBuilder sb = new StringBuilder("[");
-		if (a.length > 0) {
-			sb.append(Integer.toHexString(a[0]));
-		}
-		for (int i=1; i<a.length; i++) {
-			sb.append(", ").append(Integer.toHexString(a[i]));
-		}
-		sb.append("]");
-		return sb.toString();
-	}
+    public static String arrayToString(int[] a) {
+        StringBuilder sb = new StringBuilder("[");
+        if (a.length > 0) {
+            sb.append(Integer.toHexString(rev(a[0])));
+        }
+        for (int i=1; i<a.length; i++) {
+            sb.append(", ").append(Integer.toHexString(rev(a[i])));
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+    
+    public static int rev(int x) {
+        return (x>>>24) | ((x>>>8) &0x0000FF00) | ((x<<8) & 0x00FF0000) | (x<<24);
+    }
+
+    public static String arrayToStringBigEndian(int[] a) {
+        StringBuilder sb = new StringBuilder("[");
+        if (a.length > 0) {
+            sb.append(Integer.toHexString(a[0]));
+        }
+        for (int i=1; i<a.length; i++) {
+            sb.append(", ").append(Integer.toHexString(a[i]));
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 
 	public static String arrayToString(byte[] a) {
 		StringBuilder sb = new StringBuilder("[");

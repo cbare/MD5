@@ -89,6 +89,8 @@
 //
 import java.io.*;
 
+import cbare.md5.Bits;
+
 
 //
 // MD5 Class
@@ -157,6 +159,15 @@ class MD5
     long x[] = new long[16];
 
     x = decode (bytBlock);
+    
+    {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i=0; i<x.length; i++) {
+            sb.append(String.format("%08x", (int)x[i]&0xffffffffL));
+        }
+        sb.append("]");
+        System.out.println(sb.toString());
+    }
 
     /* Round 1 */
     lngA = ff (lngA, lngB, lngC, lngD, x[ 0], S11, 0xd76aa478L); /* 1 */
@@ -422,7 +433,7 @@ class MD5
     md5Test.update(chrTestData,chrTestData.length);    
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
-  
+  /*
     md5Test.init();
     strTestData = new String("abc");
     chrTestData = strTestData.toCharArray();    
@@ -473,6 +484,6 @@ class MD5
     md5Test.md5final();
     long time2 = (System.currentTimeMillis() - time1)/1000;
     System.out.println("MD5 Speed Test: " + time2 + "sec = " + md5Test.toHexString() );
-
+*/
   }
 }
