@@ -59,13 +59,13 @@ public class MD5 {
         {
             StringBuilder sb = new StringBuilder("[");
             for (int m=0; m<x.length; m++) {
-                sb.append(String.format("%08x",Bits.rev(x[m])));
+                sb.append(String.format("%08x-",Bits.rev(x[m])));
             }
             sb.append("]");
             System.out.println(sb.toString());
         }
         
-        if (1==1) return;
+        //if (1==1) return;
         
         {
         System.out.println("------------");
@@ -154,7 +154,7 @@ public class MD5 {
 		}
 
 		long bits = len * 8;
-		Bits.toBytes(bits, paddedData, i);
+		Bits.toBytesBigEndian(bits, paddedData, i);
 
 		return paddedData;
 	}
@@ -174,8 +174,12 @@ public class MD5 {
         System.out.println(paddedData.length);
 
 
+        // set initial values
+        int[] h = new int[h0.length];
+        for (int i=0; i<h0.length; i++)
+        		h[i] = h0[i];
+		
 		// hash each block
-		int[] h = h0;
 		// a block is 512 bits or 64 bytes or 16 32-bit ints.
 		for (int i=0; i<len; i+=16) {
 			hashBlock(h, paddedData, i);
@@ -190,11 +194,15 @@ public class MD5 {
 		return byteArray;
 	}
 
+
 	public static void main(String[] args) throws Exception {
 		MD5 md5 = new MD5();
         
-        System.out.println(Bits.toHexString(md5.hash("".getBytes("US-ASCII"))));
-        System.out.println(Bits.toHexString(md5.hash("a".getBytes("US-ASCII"))));
+        System.out.println("md5(\"\") = " + Bits.toHexString(md5.hash("".getBytes("US-ASCII"))));
+        System.out.println("md5(\"a\") = " + Bits.toHexString(md5.hash("a".getBytes("US-ASCII"))));
+        System.out.println("md5(\"abc\") = " + Bits.toHexString(md5.hash("abc".getBytes("US-ASCII"))));
+        System.out.println("md5(\"abcdefghijklmnopqrstuvwxyz\") = " + Bits.toHexString(md5.hash("abcdefghijklmnopqrstuvwxyz".getBytes("US-ASCII"))));
+        System.out.println("md5(\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\") = " + Bits.toHexString(md5.hash("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".getBytes("US-ASCII"))));
 //        System.out.println(Bits.toHexString(md5.hash("The quick brown fox jumps over the lazy dog".getBytes("US-ASCII"))));
 //        System.out.println(Bits.toHexString(md5.hash("The quick brown fox jumps over the lazy cog".getBytes("US-ASCII"))));
 	}

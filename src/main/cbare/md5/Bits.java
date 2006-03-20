@@ -60,6 +60,13 @@ public class Bits {
 		bytes[offset] = (byte)((a) & 0x000000FF);
 	}
 
+	public static void toBytesBigEndian(long a, byte[] bytes, int offset) {
+		for (int i=0; i<8; i++) {
+			bytes[offset+i] = (byte)(a & 0x000000FF);
+			a = a >>> 8;
+		}
+	}
+
     public static int leftRotate(int a, int s) {
         return (a << s) | (a >>> (32-s));
     }
