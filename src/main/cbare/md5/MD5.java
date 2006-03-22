@@ -31,15 +31,40 @@ public class MD5 {
 	private int f(int x, int y, int z) {
 		return (x & y) | ((~x) & z);
 	}
+
 	private int g(int x, int y, int z) {
 		return (x & z) | (y & (~z));
 	}
+
 	private int h(int x, int y, int z) {
 		return (x ^ y ^ z);
 	}
+
 	private int i(int x, int y, int z) {
 		return (y ^ (x | (~z)));
 	}
+
+/*
+	private int ff(int a, int b, int c, int d, int x, int s, int ac)
+	{
+		return Bits.leftRotate(a + f(b, c, d) + x + ac, s) + b;
+	}
+
+	private int gg(int a, int b, int c, int d, int x, int s, int ac)
+	{
+		return Bits.leftRotate(a + g(b, c, d) + x + ac, s) + b;
+	}
+
+	private int hh(int a, int b, int c, int d, int x, int s, int ac)
+	{
+		return Bits.leftRotate(a + h(b, c, d) + x + ac, s) + b;
+	}
+
+	private int ii(int a, int b, int c, int d, int x, int s, int ac)
+	{
+		return Bits.leftRotate(a + i(b, c, d) + x + ac, s) + b;
+	}
+*/
 
 
 	/**
@@ -55,47 +80,15 @@ public class MD5 {
 		int temp;
 
 		int i = 0, k;
-        
-        {
-            StringBuilder sb = new StringBuilder("[");
-            for (int m=0; m<x.length; m++) {
-                sb.append(String.format("%08x-",Bits.rev(x[m])));
-            }
-            sb.append("]");
-            System.out.println(sb.toString());
-        }
-        
-        //if (1==1) return;
-        
-        {
-        System.out.println("------------");
-        
-        int tf = f(b,c,d);
-        System.out.printf("f(...) = %08x = %s\n", tf, Integer.toBinaryString(tf));
-        System.out.printf("a = %08x = %s\n", a, Integer.toBinaryString(a));
-        System.out.printf("b = %08x = %s\n", b, Integer.toBinaryString(b));
-        System.out.printf("ac[0] = %08x = %s\n", ac[0], Integer.toBinaryString(ac[0]));
-        System.out.printf("x[0] = %08x = %s\n", x[0], Integer.toBinaryString(x[0]));
-        int tz = a + tf + ac[0] + x[0];
-        System.out.printf("tz = %08x\n", tz);
-        System.out.println(Integer.toBinaryString(tz));
-        int tzr = Bits.leftRotate(tz, s[0]);
-        System.out.printf("tzr = %08x\n", tzr);
-        System.out.println(Integer.toBinaryString(tzr));
 
-        System.out.println("------------");
-        }
-        
         // Round 1
 		for (; i<16; i++) {
             k = offset + i;
-            temp = Bits.rev(x[k]);
             temp = Bits.leftRotate(a + f(b,c,d) + ac[i] + Bits.rev(x[k]), s[i]) + b;
             a = d;
             d = c;
             c = b;
             b = temp;
-            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
         // Round 2
@@ -106,7 +99,6 @@ public class MD5 {
             d = c;
             c = b;
             b = temp;
-            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
         // Round 3
@@ -117,7 +109,6 @@ public class MD5 {
             d = c;
             c = b;
             b = temp;
-            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
         // Round 4
@@ -128,7 +119,6 @@ public class MD5 {
             d = c;
             c = b;
             b = temp;
-            System.out.printf("a,b,c,d = %d, %d, %d, %d\n", (long)a&0xFFFFFFFFL, (long)b&0xFFFFFFFFL, (long)c&0xFFFFFFFFL, (long)d&0xFFFFFFFFL);
 		}
 
 		h[0] += a;
@@ -178,7 +168,7 @@ public class MD5 {
         int[] h = new int[h0.length];
         for (int i=0; i<h0.length; i++)
         		h[i] = h0[i];
-		
+
 		// hash each block
 		// a block is 512 bits or 64 bytes or 16 32-bit ints.
 		for (int i=0; i<len; i+=16) {
@@ -197,7 +187,7 @@ public class MD5 {
 
 	public static void main(String[] args) throws Exception {
 		MD5 md5 = new MD5();
-        
+
         System.out.println("md5(\"\") = " + Bits.toHexString(md5.hash("".getBytes("US-ASCII"))));
         System.out.println("md5(\"a\") = " + Bits.toHexString(md5.hash("a".getBytes("US-ASCII"))));
         System.out.println("md5(\"abc\") = " + Bits.toHexString(md5.hash("abc".getBytes("US-ASCII"))));
