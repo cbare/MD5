@@ -73,20 +73,18 @@ public class Bits {
 
 
 	public static String toHexString(byte[] b) {
-		StringBuilder sb = new StringBuilder("[");
+		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<b.length; i++) {
 			sb.append(String.format("%02x",b[i]));
 		}
-		sb.append("]");
 		return sb.toString();
 	}
 
     public static Object toHexString(int[] data) {
-        StringBuilder sb = new StringBuilder("[");
+        StringBuilder sb = new StringBuilder();
         for (int i=0; i<data.length; i++) {
             sb.append(String.format("%08x",data[i]));
         }
-        sb.append("]");
         return sb.toString();
     }
 
@@ -101,7 +99,7 @@ public class Bits {
         sb.append("]");
         return sb.toString();
     }
-    
+
     public static int rev(int x) {
         return (x>>>24) | ((x>>>8) &0x0000FF00) | ((x<<8) & 0x00FF0000) | (x<<24);
     }
@@ -128,6 +126,16 @@ public class Bits {
 		}
 		sb.append("]");
 		return sb.toString();
+	}
+
+	public static byte[] hexStringToByteArray(String hex) {
+		int len = hex.length() / 2;
+		byte[] bytes = new byte[len];
+
+		for (int i=0; i<len; i++) {
+			bytes[i] = Byte.parseByte(hex.substring(i*2,i*2+2));
+		}
+		return bytes;
 	}
 
 	public static void main(String[] args) {
