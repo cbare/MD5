@@ -113,7 +113,7 @@ class MD5
   private static long S42 = 10L;
   private static long S43 = 15L;
   private static long S44 = 21L;
- 
+
   private static char pad[] = {128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -127,7 +127,7 @@ class MD5
   //
   // Constructor
   //
-  MD5() 
+  MD5()
   {
 	this.init();
   }
@@ -139,17 +139,17 @@ class MD5
   {
     long lngBlock[] = new long[16];
     int j = 0;
-    for(int i = 0; i < bytBlock.length; i += 4) 
+    for(int i = 0; i < bytBlock.length; i += 4)
     {
 	lngBlock[j++] =  bytBlock[i] +
-                       bytBlock[i+1] * 256L + 
-                       bytBlock[i+2] * 65536L + 
+                       bytBlock[i+1] * 256L +
+                       bytBlock[i+2] * 65536L +
                        bytBlock[i+3] * 16777216L;
     }
     return(lngBlock);
   }
 
- 
+
   private static void transform(long lngState[], char bytBlock[])
   {
     long lngA = lngState[0];
@@ -159,7 +159,7 @@ class MD5
     long x[] = new long[16];
 
     x = decode (bytBlock);
-    
+
     {
         StringBuilder sb = new StringBuilder("[");
         for (int i=0; i<x.length; i++) {
@@ -186,7 +186,7 @@ class MD5
     lngD = ff (lngD, lngA, lngB, lngC, x[13], S12, 0xfd987193L); /* 14 */
     lngC = ff (lngC, lngD, lngA, lngB, x[14], S13, 0xa679438eL); /* 15 */
     lngB = ff (lngB, lngC, lngD, lngA, x[15], S14, 0x49b40821L); /* 16 */
-    
+
     /* Round 2 */
     lngA = gg (lngA, lngB, lngC, lngD, x[ 1], S21, 0xf61e2562L); /* 17 */
     lngD = gg (lngD, lngA, lngB, lngC, x[ 6], S22, 0xc040b340L); /* 18 */
@@ -222,7 +222,7 @@ class MD5
     lngD = hh (lngD, lngA, lngB, lngC, x[12], S32, 0xe6db99e5L); /* 46 */
     lngC = hh (lngC, lngD, lngA, lngB, x[15], S33, 0x1fa27cf8L); /* 47 */
     lngB = hh (lngB, lngC, lngD, lngA, x[ 2], S34, 0xc4ac5665L); /* 48 */
-   
+
     /* Round 4 */
     lngA = ii (lngA, lngB, lngC, lngD, x[ 0], S41, 0xf4292244L); /* 49 */
     lngD = ii (lngD, lngA, lngB, lngC, x[ 7], S42, 0x432aff97L); /* 50 */
@@ -251,7 +251,7 @@ class MD5
   }
 
   private static long ff(long lngA,
-	 		long lngB, 
+	 		long lngB,
 			long lngC,
 			long lngD,
 			long lngX,
@@ -268,7 +268,7 @@ class MD5
 
 
   private static long gg(long lngA,
-	 		long lngB, 
+	 		long lngB,
 			long lngC,
 			long lngD,
 			long lngX,
@@ -282,7 +282,7 @@ class MD5
   }
 
  private static long hh(long lngA,
-	 		long lngB, 
+	 		long lngB,
 			long lngC,
 			long lngD,
 			long lngX,
@@ -296,7 +296,7 @@ class MD5
   }
 
  private static long ii(long lngA,
-	 		long lngB, 
+	 		long lngB,
 			long lngC,
 			long lngD,
 			long lngX,
@@ -316,21 +316,21 @@ class MD5
     int i = 0;
     this.lngByteCount += lngLen;
     int partLen = 64 - index;
-    
-    if (lngLen >= partLen) 
+
+    if (lngLen >= partLen)
     {
-      for (int j = 0; j < partLen; ++j) 
+      for (int j = 0; j < partLen; ++j)
       {
-        this.bytBuffer[j + index] = bytInput[j]; 
+        this.bytBuffer[j + index] = bytInput[j];
       }
       transform (this.lngState, this.bytBuffer);
 
       for (i = partLen; i + 63 < lngLen; i += 64)
       {
-      	for (int j = 0; j<64; ++j) 
+      	for (int j = 0; j<64; ++j)
       	{
-          this.bytBuffer[j] = bytInput[j+i]; 
-        }	
+          this.bytBuffer[j] = bytInput[j+i];
+        }
         transform (this.lngState, this.bytBuffer);
       }
       index = 0;
@@ -340,11 +340,11 @@ class MD5
       i = 0;
     }
 
-    for (int j = 0; j < lngLen - i; ++j) 
-    {  
+    for (int j = 0; j < lngLen - i; ++j)
+    {
       this.bytBuffer[index + j] = bytInput[i + j];
     }
-    
+
   }
 
   public void md5final()
@@ -352,7 +352,7 @@ class MD5
     char bytBits[] = new char[8];
     int index, padLen;
     long bits = this.lngByteCount * 8;
-    
+
     bytBits[0] = (char) (bits & 0xffL);
     bytBits[1] = (char) ((bits >>> 8) & 0xffL);
     bytBits[2] = (char) ((bits >>> 16) & 0xffL);
@@ -361,7 +361,7 @@ class MD5
     bytBits[5] = (char)((bits >>> 40) & 0xffL);
     bytBits[6] = (char)((bits >>> 48) & 0xffL);
     bytBits[7] = (char)((bits >>> 56) & 0xffL);
- 
+
     index = (int) this.lngByteCount%64;
     if (index < 56 )
     {
@@ -372,7 +372,7 @@ class MD5
       padLen = 120 - index;
     }
     update(pad, padLen);
-    update(bytBits, 8);	    
+    update(bytBits, 8);
 
   }
 
@@ -391,7 +391,7 @@ class MD5
          }
          else
          {
-           mystring.append(Long.toHexString(myByte)); 
+           mystring.append(Long.toHexString(myByte));
          }
       }
     }
@@ -422,50 +422,50 @@ class MD5
     MD5 md5Test = new MD5();
 
     strTestData = new String("");
-    chrTestData = strTestData.toCharArray();    
-    md5Test.update(chrTestData,chrTestData.length);    
+    chrTestData = strTestData.toCharArray();
+    md5Test.update(chrTestData,chrTestData.length);
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
 
     md5Test.init();
-    strTestData = new String("a");
-    chrTestData = strTestData.toCharArray();    
-    md5Test.update(chrTestData,chrTestData.length);    
+    strTestData = new String("abcdefghijklmnopqrstuvwxyzABCDEF");
+    chrTestData = strTestData.toCharArray();
+    md5Test.update(chrTestData,chrTestData.length);
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
   /*
     md5Test.init();
     strTestData = new String("abc");
-    chrTestData = strTestData.toCharArray();    
-    md5Test.update(chrTestData,chrTestData.length);    
+    chrTestData = strTestData.toCharArray();
+    md5Test.update(chrTestData,chrTestData.length);
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
 
     md5Test.init();
     strTestData = new String("message digest");
-    chrTestData = strTestData.toCharArray();    
-    md5Test.update(chrTestData,chrTestData.length);    
+    chrTestData = strTestData.toCharArray();
+    md5Test.update(chrTestData,chrTestData.length);
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
 
     md5Test.init();
     strTestData = new String("abcdefghijklmnopqrstuvwxyz");
-    chrTestData = strTestData.toCharArray();    
-    md5Test.update(chrTestData,chrTestData.length);    
+    chrTestData = strTestData.toCharArray();
+    md5Test.update(chrTestData,chrTestData.length);
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
 
     md5Test.init();
     strTestData = new String("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-    chrTestData = strTestData.toCharArray();    
-    md5Test.update(chrTestData,chrTestData.length);    
+    chrTestData = strTestData.toCharArray();
+    md5Test.update(chrTestData,chrTestData.length);
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
 
     md5Test.init();
     strTestData = new String("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
-    chrTestData = strTestData.toCharArray();    
-    md5Test.update(chrTestData,chrTestData.length);    
+    chrTestData = strTestData.toCharArray();
+    md5Test.update(chrTestData,chrTestData.length);
     md5Test.md5final();
     System.out.println("MD5 (" + strTestData +") = " + md5Test.toHexString() );
 
@@ -477,7 +477,7 @@ class MD5
 
     long time1 = System.currentTimeMillis();
     md5Test.init();
-    for (int i = 0; i < 100000; ++i) 
+    for (int i = 0; i < 100000; ++i)
     {
       md5Test.update(chrTestBuffer,chrTestBuffer.length);
     }

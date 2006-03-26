@@ -46,6 +46,11 @@ public class Bits {
 		return b;
 	}
 
+	/**
+	 * convert an int to a byte array.
+	 * @param b byte array to receive the value
+	 * @param offset in b to receive the value
+	 */
 	public static void toBytes(int a, byte[] b, int offset) {
 		for (int i=3; i>=0; i--) {
 			b[offset+i] = (byte)(a & 0x000000FF);
@@ -53,6 +58,13 @@ public class Bits {
 		}
 	}
 
+	/**
+	 * converts an int to a 4 element byte array such that
+	 * the most significant byte comes first.
+	 * @param a value to convert
+	 * @param bytes byte array to receive the value
+	 * @param offset where to put the value in the byte array
+	 */
 	public static void toBytesBigEndian(int a, byte[] bytes, int offset) {
 		bytes[offset+3]   = (byte)((a >>> 24) & 0x000000FF);
 		bytes[offset+2] = (byte)((a >>> 16) & 0x000000FF);
@@ -60,6 +72,13 @@ public class Bits {
 		bytes[offset] = (byte)((a) & 0x000000FF);
 	}
 
+	/**
+	 * converts a long to a 8 element byte array such that
+	 * the most significant byte comes first.
+	 * @param a value to convert
+	 * @param bytes destination of value
+	 * @param offset where to put the value in the byte array
+	 */
 	public static void toBytesBigEndian(long a, byte[] bytes, int offset) {
 		for (int i=0; i<8; i++) {
 			bytes[offset+i] = (byte)(a & 0x000000FF);
@@ -68,6 +87,7 @@ public class Bits {
 	}
 
     public static int leftRotate(int a, int s) {
+    	s %= 32;
         return (a << s) | (a >>> (32-s));
     }
 
@@ -136,15 +156,6 @@ public class Bits {
 			bytes[i] = Byte.parseByte(hex.substring(i*2,i*2+2));
 		}
 		return bytes;
-	}
-
-	public static void main(String[] args) {
-		int i = 0xFF2A8199;
-		System.out.println(Integer.toHexString(i));
-		byte[] b = toBytes(i);
-		System.out.println(toHexString(b));
-		int j = toInt(b,0);
-		System.out.println(Integer.toHexString(j));
 	}
 
 

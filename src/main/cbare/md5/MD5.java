@@ -4,13 +4,52 @@ package cbare.md5;
  * needs update & finalize
  * main method - digest file or stdin
  * implement java.crypto.Mac?
- * @author christopherbare
+ *
+ * recasting an array of bytes to an array of ints involves copying the array.
+ * lack of unsigned integer types is inconvenient
+ *
+ * @author christopherbare@cbare.org
  *
  */
 public class MD5 {
 
-	private static int[] h0 = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476};
+	private final static int BLOCK_SIZE = 16;
+	private final static int BLOCK_SIZE_BYTES = BLOCK_SIZE * 4;
+	private final static int[] h0 = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476};
 
+	/**
+	 * the hash value state
+	 */
+	private int[] h = new int[4];
+
+	/**
+	 * store partial block left over at end of an update
+	 */
+	private byte[] leftover;
+	private int leftoverLen;
+
+	/**
+	 * length of input hashed so far in bytes
+	 */
+	private long hashedLen;
+
+
+	public MD5() {
+		reset();
+	}
+
+	/**
+	 * flip the endian-ness of the input block
+	 * @param block an int array of BLOCK_SIZE elements
+	 * @return an int array of BLOCK_SIZE elements
+	 */
+	private int[] decode(int[] block) {
+		int[] x = new int[BLOCK_SIZE];
+		for (int i=0; i<BLOCK_SIZE; i++) {
+			x[i] = Bits.rev(block[i]);
+		}
+		return x;
+	}
 
 	private int f(int x, int y, int z) {
 		return (x & y) | ((~x) & z);
@@ -30,40 +69,37 @@ public class MD5 {
 
 	private int ff(int a, int b, int c, int d, int x, int s, int ac)
 	{
-		return Bits.leftRotate(a + f(b, c, d) + Bits.rev(x) + ac, s) + b;
+		return Bits.leftRotate(a + f(b, c, d) + x + ac, s) + b;
 	}
 
 	private int gg(int a, int b, int c, int d, int x, int s, int ac)
 	{
-		return Bits.leftRotate(a + g(b, c, d) + Bits.rev(x) + ac, s) + b;
+		return Bits.leftRotate(a + g(b, c, d) + x + ac, s) + b;
 	}
 
 	private int hh(int a, int b, int c, int d, int x, int s, int ac)
 	{
-		return Bits.leftRotate(a + h(b, c, d) + Bits.rev(x) + ac, s) + b;
+		return Bits.leftRotate(a + h(b, c, d) + x + ac, s) + b;
 	}
 
 	private int ii(int a, int b, int c, int d, int x, int s, int ac)
 	{
-		return Bits.leftRotate(a + i(b, c, d) + Bits.rev(x) + ac, s) + b;
-	}
-
-
-	public void reset() {
-
+		return Bits.leftRotate(a + i(b, c, d) + x + ac, s) + b;
 	}
 
 
 	/**
 	 *
-	 * @param h
-	 * @param x
+	 * @param block
 	 */
-	public void hashBlock(int[] h, int[] x, int offset) {
+	public void hashBlock(int[] block) {
 		int a = h[0];
 		int b = h[1];
 		int c = h[2];
 		int d = h[3];
+
+		// flip the endian-ness of the input block
+		int[] x = decode(block);
 
 	    // Round 1
 	    a = ff(a, b, c, d, x[ 0],  7, 0xd76aa478); /* 1 */
@@ -143,82 +179,168 @@ public class MD5 {
 		h[3] += d;
 	}
 
+//  I decided to inline this, 'cause that makes it easier to reuse the int array
+//  over multiple iterations and because we need to keep the value of the
+//  input index in the main loop in update().
+//	public void hashBlock(byte[] bytes, int index, int[] block) {
+//		// convert a block of bytes to a block of integers and hashes it
+//		for (int k=0; k<BLOCK_SIZE; k++) {
+//			block[k] = Bits.toInt(bytes, index);
+//			index += 4;
+//		}
+//		hashBlock(block);
+//	}
+
+
+	/**
+	 * reset state to initial value
+	 */
+	public void reset() {
+        for (int i=0; i<h.length; i++) {
+        	h[i] = h0[i];
+        }
+        leftover = null;
+        leftoverLen = 0;
+        hashedLen = 0;
+	}
+
+	public byte[] doFinal(byte[] input) {
+		update(input);
+		return doFinal();
+	}
+
 	public byte[] doFinal() {
+		int[] block = new int[BLOCK_SIZE];
+
+		hashedLen += leftoverLen;
+
+		// we might have one or two more blocks to hash at this point.
+		// If the leftover partial block is smaller than 56 bytes, we
+		// can append the padding bits and the length to it. Otherwise,
+		// the padding and length will extend into another block.
+
+		// if partial block exists
+		if (leftover != null) {
+
+			// tag the end of input
+			// leftoverLen should be < leftover.length
+			leftover[leftoverLen++] = (byte)0x80;
+
+			if (leftoverLen > BLOCK_SIZE_BYTES - 8) {
+				for (;leftoverLen < BLOCK_SIZE_BYTES; leftoverLen++) {
+					leftover[leftoverLen] = (byte)0x00;
+				}
+
+				// convert the block to integers
+				int i = 0;
+				for (int k=0; k<BLOCK_SIZE; k++) {
+					block[k] = Bits.toInt(leftover, i);
+					i += 4;
+				}
+				hashBlock(block);
+
+				leftover = new byte[BLOCK_SIZE_BYTES];
+				leftoverLen = 0;
+			}
+		}
+		else {
+			leftover = new byte[BLOCK_SIZE_BYTES];
+			leftoverLen = 0;
+			leftover[leftoverLen++] = (byte)0x80;
+		}
+
+
+		for (;leftoverLen < (BLOCK_SIZE_BYTES - 8); leftoverLen++) {
+			leftover[leftoverLen] = (byte)0x00;
+		}
+		Bits.toBytesBigEndian(hashedLen * 8, leftover, leftoverLen);
+
+		// convert the block to integers
+		int i = 0;
+		for (int k=0; k<BLOCK_SIZE; k++) {
+			block[k] = Bits.toInt(leftover, i);
+			i += 4;
+		}
+		//System.out.println(Bits.toHexString(block));
+		hashBlock(block);
+
+		// make a 16 byte array (128 bits)
+		byte[] byteArray = new byte[16];
+		for (int k=0; k<4; k++) {
+			Bits.toBytesBigEndian(h[k], byteArray, k*4);
+		}
+
 		reset();
-		return null;
+
+		return byteArray;
 	}
 
 	public void update(byte[] input) {
 
-	}
+		int[] block = new int[BLOCK_SIZE];
+		int inputIndex = 0;
 
-	public byte[] pad(byte[] data) {
-		int len = data.length;
-		int paddedLen = (len/64)*64  + 64;
+		// if there is a leftover partial block, start with that
+		if (leftover != null) {
 
-		if (paddedLen - len < 9)
-			paddedLen += 64;
+			// if we still can't fill a complete block
+			if (input.length + leftoverLen < BLOCK_SIZE_BYTES)
+			{
+				// store the input and bail out
+				System.arraycopy(input, 0, leftover, leftoverLen, input.length);
+				leftoverLen += input.length;
+				return;
+			}
 
-		byte[] paddedData = new byte[paddedLen];
-		System.arraycopy(data, 0, paddedData, 0, len);
-		paddedData[len] = (byte)0x80;
+			// fill up the partial block
+			inputIndex = leftover.length - leftoverLen;
+			System.arraycopy(input, 0, leftover, leftoverLen, inputIndex);
 
-		int i = len+1;
-		for (; i<paddedLen-8; i++) {
-			paddedData[i] = 0;
+			// convert the block to integers
+			int i = 0;
+			for (int k=0; k<BLOCK_SIZE; k++) {
+				block[k] = Bits.toInt(leftover, i);
+				i += 4;
+			}
+			hashBlock(block);
+			hashedLen += BLOCK_SIZE_BYTES;
 		}
 
-		long bits = len * 8;
-		Bits.toBytesBigEndian(bits, paddedData, i);
-
-		return paddedData;
-	}
-
-	public byte[] hash(byte[] data) {
-		byte[] paddedDataByteArray = pad(data);
-
-		Bits.arrayToString(paddedDataByteArray);
-
-		// convert byte array to int array
-		int len = paddedDataByteArray.length / 4;
-		int[] paddedData = new int[len];
-		for (int i=0; i<len; i++) {
-			paddedData[i] = Bits.toInt(paddedDataByteArray, i*4);
-		}
-        System.out.println("paddedData in int[] = " + Bits.toHexString(paddedData));
-        System.out.println(paddedData.length);
-
-
-        // set initial values
-        int[] h = new int[h0.length];
-        for (int i=0; i<h0.length; i++)
-        		h[i] = h0[i];
-
-		// hash each block
-		// a block is 512 bits or 64 bytes or 16 32-bit ints.
-		for (int i=0; i<len; i+=16) {
-			hashBlock(h, paddedData, i);
+		// if we have enough input for a block
+		int len = input.length;
+		while ( (len-inputIndex) >= (BLOCK_SIZE_BYTES) ) {
+			// convert the block to integers
+			for (int k=0; k<BLOCK_SIZE; k++) {
+				block[k] = Bits.toInt(input, inputIndex);
+				inputIndex += 4;
+			}
+			hashBlock(block);
+			hashedLen += BLOCK_SIZE_BYTES;
 		}
 
-		// make a 16 byte array (128 bits)
-		byte[] byteArray = new byte[16];
-		for (int i=0; i<4; i++) {
-			Bits.toBytesBigEndian(h[i], byteArray, i*4);
+		// if block not empty, store leftover partial block
+		leftoverLen = len-inputIndex;
+		if (leftoverLen > 0) {
+			leftover = new byte[BLOCK_SIZE_BYTES];
+			System.arraycopy(input, inputIndex, leftover, 0, leftoverLen);
+		}
+		else {
+			// TODO clear input
+			leftover = null;
 		}
 
-		return byteArray;
 	}
 
 
 	public static void main(String[] args) throws Exception {
 		MD5 md5 = new MD5();
 
-        System.out.println("md5(\"\") = " + Bits.toHexString(md5.hash("".getBytes("US-ASCII"))));
-        System.out.println("md5(\"a\") = " + Bits.toHexString(md5.hash("a".getBytes("US-ASCII"))));
-        System.out.println("md5(\"abc\") = " + Bits.toHexString(md5.hash("abc".getBytes("US-ASCII"))));
-        System.out.println("md5(\"abcdefghijklmnopqrstuvwxyz\") = " + Bits.toHexString(md5.hash("abcdefghijklmnopqrstuvwxyz".getBytes("US-ASCII"))));
-        System.out.println("md5(\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\") = " + Bits.toHexString(md5.hash("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".getBytes("US-ASCII"))));
-//        System.out.println(Bits.toHexString(md5.hash("The quick brown fox jumps over the lazy dog".getBytes("US-ASCII"))));
-//        System.out.println(Bits.toHexString(md5.hash("The quick brown fox jumps over the lazy cog".getBytes("US-ASCII"))));
+        System.out.println("md5(\"\") = " + Bits.toHexString(md5.doFinal("".getBytes("US-ASCII"))));
+        System.out.println("md5(\"a\") = " + Bits.toHexString(md5.doFinal("a".getBytes("US-ASCII"))));
+        System.out.println("md5(\"abc\") = " + Bits.toHexString(md5.doFinal("abc".getBytes("US-ASCII"))));
+        System.out.println("md5(\"abcdefghijklmnopqrstuvwxyz\") = " + Bits.toHexString(md5.doFinal("abcdefghijklmnopqrstuvwxyz".getBytes("US-ASCII"))));
+        System.out.println("md5(\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\") = " + Bits.toHexString(md5.doFinal("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".getBytes("US-ASCII"))));
+        System.out.println(Bits.toHexString(md5.doFinal("The quick brown fox jumps over the lazy dog".getBytes("US-ASCII"))));
+        System.out.println(Bits.toHexString(md5.doFinal("The quick brown fox jumps over the lazy cog".getBytes("US-ASCII"))));
 	}
 }
