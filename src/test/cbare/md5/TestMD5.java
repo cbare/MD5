@@ -4,6 +4,10 @@ import java.io.UnsupportedEncodingException;
 
 import junit.framework.TestCase;
 
+/**
+ * Test MD5
+ * @author Chris
+ */
 public class TestMD5 extends TestCase {
 	private MD5 md5 = new MD5();
 
@@ -104,7 +108,21 @@ public class TestMD5 extends TestCase {
 			md5.update("1234567890".getBytes("US-ASCII"));
 		}
 		byte[] hash = md5.doFinal();
-		System.out.println("md5.update(\"1234567890\") x 8 = " + Bits.toHexString(hash));
+		System.out.println("md5.update(\"1234567890\"x8) = " + Bits.toHexString(hash));
+		assertEquals("57edf4a22be3c955ac49da2e2107b67a", Bits.toHexString(hash));
+	}
+
+	public void testUpdateOffset() throws Exception {
+		md5.update("don't-hash-me:abcdefghijklmnopqrstuvwxyz:don't-hash-me".getBytes("US-ASCII"), 14, 26);
+		byte[] hash = md5.doFinal();
+		System.out.println("md5(\"abcdefghijklmnopqrstuvwxyz\") = " + Bits.toHexString(hash));
+		assertEquals("c3fcd3d76192e4007dfb496cca67e13b", Bits.toHexString(hash));
+	}
+
+	public void testFile() throws Exception {
+		md5.hashFile("classpath:test.txt");
+		byte[] hash = md5.doFinal();
+		System.out.println("md5( file ) = " + Bits.toHexString(hash));
 		assertEquals("57edf4a22be3c955ac49da2e2107b67a", Bits.toHexString(hash));
 	}
 }

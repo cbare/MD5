@@ -1,24 +1,35 @@
 package cbare.md5;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
- * needs update & finalize
- * main method - digest file or stdin
- * implement java.crypto.Mac?
- *
- * recasting an array of bytes to an array of ints involves copying the array.
- * lack of unsigned integer types is inconvenient
+ * Implements the MD5 cryptographic hash function as described in RFC1321 by R. Rivest.
+ * <p>
+ * <b>Warning:</b> The MD5 algorithm is no longer considered secure. This implementation
+ * was made just for laughs and has not been thoroughly tested. Don't rely on its security
+ * or correctness.
+ * <p>
+ * TODO: zero out copies of input and intermediate data.
  *
  * @author christopherbare@cbare.org
+ * @date 2006.03.26
  *
  */
 public class MD5 {
 
 	private final static int BLOCK_SIZE = 16;
 	private final static int BLOCK_SIZE_BYTES = BLOCK_SIZE * 4;
+
+	/**
+	 * initial state values
+	 */
 	private final static int[] h0 = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476};
 
 	/**
-	 * the hash value state
+	 * the hash state value
 	 */
 	private int[] h = new int[4];
 
@@ -89,8 +100,8 @@ public class MD5 {
 
 
 	/**
-	 *
-	 * @param block
+	 * transform a block according to the MD5 algorithm.
+	 * @param block a 16 element array of integers (64 bytes)
 	 */
 	public void hashBlock(int[] block) {
 		int a = h[0];
@@ -173,6 +184,11 @@ public class MD5 {
 	    c = ii(c, d, a, b, x[ 2], 15, 0x2ad7d2bb); /* 63 */
 	    b = ii(b, c, d, a, x[ 9], 21, 0xeb86d391); /* 64 */
 
+	    // zero out inputs
+	    for (int i=0; i<x.length; i++) {
+	    	x[i] = 0;
+	    }
+
 		h[0] += a;
 		h[1] += b;
 		h[2] += c;
@@ -204,11 +220,20 @@ public class MD5 {
         hashedLen = 0;
 	}
 
+	/**
+	 * Computes and returns the hash of the input in one step.
+	 * @return the MD5 hash code of the input
+	 */
 	public byte[] doFinal(byte[] input) {
 		update(input);
 		return doFinal();
 	}
 
+	/**
+	 * Returns the hash of input previously submitted to the update(...) method
+	 * and resets the state of the MD5 class.
+	 * @return the MD5 hash code of accumulated input
+	 */
 	public byte[] doFinal() {
 		int[] block = new int[BLOCK_SIZE];
 
@@ -275,26 +300,37 @@ public class MD5 {
 		return byteArray;
 	}
 
+	/**
+	 * updates the state of the MD5 class by processing the given input.
+	 */
 	public void update(byte[] input) {
+		update(input, 0, input.length);
+	}
+
+	/**
+	 * updates the state of the MD5 class by processing the given input
+	 * starting at <i>offset</i> and extending for <i>len</i> bytes.
+	 */
+	public void update(byte[] input, int offset, int len) {
 
 		int[] block = new int[BLOCK_SIZE];
-		int inputIndex = 0;
+		int inputIndex = offset;
 
 		// if there is a leftover partial block, start with that
 		if (leftover != null) {
 
 			// if we still can't fill a complete block
-			if (input.length + leftoverLen < BLOCK_SIZE_BYTES)
+			if (len + leftoverLen < BLOCK_SIZE_BYTES)
 			{
 				// store the input and bail out
-				System.arraycopy(input, 0, leftover, leftoverLen, input.length);
+				System.arraycopy(input, offset, leftover, leftoverLen, len);
 				leftoverLen += input.length;
 				return;
 			}
 
 			// fill up the partial block
-			inputIndex = leftover.length - leftoverLen;
-			System.arraycopy(input, 0, leftover, leftoverLen, inputIndex);
+			inputIndex += leftover.length - leftoverLen;
+			System.arraycopy(input, offset, leftover, leftoverLen, inputIndex);
 
 			// convert the block to integers
 			int i = 0;
@@ -307,8 +343,7 @@ public class MD5 {
 		}
 
 		// if we have enough input for a block
-		int len = input.length;
-		while ( (len-inputIndex) >= (BLOCK_SIZE_BYTES) ) {
+		while ( (len+offset-inputIndex) >= (BLOCK_SIZE_BYTES) ) {
 			// convert the block to integers
 			for (int k=0; k<BLOCK_SIZE; k++) {
 				block[k] = Bits.toInt(input, inputIndex);
@@ -318,29 +353,84 @@ public class MD5 {
 			hashedLen += BLOCK_SIZE_BYTES;
 		}
 
-		// if block not empty, store leftover partial block
-		leftoverLen = len-inputIndex;
+		// store leftover partial block
+		leftoverLen = len+offset-inputIndex;
 		if (leftoverLen > 0) {
 			leftover = new byte[BLOCK_SIZE_BYTES];
 			System.arraycopy(input, inputIndex, leftover, 0, leftoverLen);
 		}
 		else {
-			// TODO clear input
 			leftover = null;
 		}
 
 	}
 
+	/**
+	 * updates the MD5 state by hashing the contents of the given file.
+	 * @param filename a path that my start with the prefix "classpath:" to
+	 * indicate a classpath relative path.
+	 * @throws IOException
+	 */
+	public void hashFile(String filename) throws IOException {
+		InputStream input = null;
+		if (filename.startsWith("classpath:")) {
+			filename = filename.substring(10);
+			input = MD5.class.getResourceAsStream(filename);
+		}
+		else {
+			input = new BufferedInputStream(new FileInputStream(filename));
+		}
+		hashInputStream(input);
+	}
 
+	/**
+	 * updates the MD5 state by hashing data from an input stream.
+	 */
+	public void hashInputStream(InputStream in) throws IOException {
+		byte[] bytes = new byte[BLOCK_SIZE];
+		int len;
+		while ((len = in.read(bytes)) > -1) {
+			update(bytes, 0, len);
+		}
+	}
+
+
+	public static void usage() {
+		String ln = System.getProperty("line.separator");
+		System.out.println(
+			"=====" + ln +
+			" MD5" + ln +
+			"=====" + ln + ln +
+			"> java cbare.md5.MD5 [filename] [filename2] ..." + ln + ln +
+			"Implements the MD5 cryptographic hash function. If filename(s) are given," + ln +
+			"the program computes the hash code of the given file(s). If no filename is" + ln +
+			"given, the program reads input from the standard input stream. The program" + ln +
+			"then prints the MD5 hash code to the standard output stream. ");
+		System.out.println( ln +
+			"**Warning: MD5 is no longer recommended and this implementation is not" + ln +
+			"well tested, so don't rely on it for security.");
+	}
+
+	/**
+	 * entry point for command line usage
+	 */
 	public static void main(String[] args) throws Exception {
 		MD5 md5 = new MD5();
 
-        System.out.println("md5(\"\") = " + Bits.toHexString(md5.doFinal("".getBytes("US-ASCII"))));
-        System.out.println("md5(\"a\") = " + Bits.toHexString(md5.doFinal("a".getBytes("US-ASCII"))));
-        System.out.println("md5(\"abc\") = " + Bits.toHexString(md5.doFinal("abc".getBytes("US-ASCII"))));
-        System.out.println("md5(\"abcdefghijklmnopqrstuvwxyz\") = " + Bits.toHexString(md5.doFinal("abcdefghijklmnopqrstuvwxyz".getBytes("US-ASCII"))));
-        System.out.println("md5(\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\") = " + Bits.toHexString(md5.doFinal("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".getBytes("US-ASCII"))));
-        System.out.println(Bits.toHexString(md5.doFinal("The quick brown fox jumps over the lazy dog".getBytes("US-ASCII"))));
-        System.out.println(Bits.toHexString(md5.doFinal("The quick brown fox jumps over the lazy cog".getBytes("US-ASCII"))));
+		if (args.length > 0 && ("?".equals(args[0]) || "-?".equals(args[0]) || "-h".equals(args[0]) || "--help".equals(args[0]))) {
+			usage();
+			return;
+		}
+
+		if (args.length > 0) {
+			for (int i=0; i<args.length; i++) {
+				md5.hashFile(args[i]);
+			}
+		}
+		else {
+			md5.hashInputStream(System.in);
+		}
+
+        System.out.println(Bits.toHexString(md5.doFinal()));
 	}
 }

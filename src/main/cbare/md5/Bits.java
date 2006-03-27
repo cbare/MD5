@@ -1,5 +1,9 @@
 package cbare.md5;
 
+/**
+ * bit twiddling functions
+ * @author Chris
+ */
 public class Bits {
 
 
