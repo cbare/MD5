@@ -13,6 +13,7 @@ import java.io.InputStream;
  * or correctness.
  * <p>
  * TODO: zero out copies of input and intermediate data.
+ * TODO: implement javax.crypto.Mac
  *
  * @author christopherbare@cbare.org
  * @date 2006.03.26
@@ -108,6 +109,8 @@ public class MD5 {
 		int b = h[1];
 		int c = h[2];
 		int d = h[3];
+
+		//System.out.println(Bits.toHexString(block));
 
 		// flip the endian-ness of the input block
 		int[] x = decode(block);
@@ -324,7 +327,7 @@ public class MD5 {
 			{
 				// store the input and bail out
 				System.arraycopy(input, offset, leftover, leftoverLen, len);
-				leftoverLen += input.length;
+				leftoverLen += len;
 				return;
 			}
 
@@ -387,7 +390,7 @@ public class MD5 {
 	 * updates the MD5 state by hashing data from an input stream.
 	 */
 	public void hashInputStream(InputStream in) throws IOException {
-		byte[] bytes = new byte[BLOCK_SIZE];
+		byte[] bytes = new byte[BLOCK_SIZE_BYTES];
 		int len;
 		while ((len = in.read(bytes)) > -1) {
 			update(bytes, 0, len);
@@ -401,29 +404,52 @@ public class MD5 {
 			"=====" + ln +
 			" MD5" + ln +
 			"=====" + ln + ln +
-			"> java cbare.md5.MD5 [filename] [filename2] ..." + ln + ln +
+			"> java cbare.md5.MD5 [opts] [filename] [filename2] ..." + ln + ln +
 			"Implements the MD5 cryptographic hash function. If filename(s) are given," + ln +
 			"the program computes the hash code of the given file(s). If no filename is" + ln +
 			"given, the program reads input from the standard input stream. The program" + ln +
 			"then prints the MD5 hash code to the standard output stream. ");
 		System.out.println( ln +
-			"**Warning: MD5 is no longer recommended and this implementation is not" + ln +
-			"well tested, so don't rely on it for security.");
+				"**Warning: MD5 is no longer recommended and this implementation is not" + ln +
+				"well tested, so don't rely on it for security.");
+		System.out.println( ln +
+				"Options:" + ln +
+				"-------" + ln +
+				"-? -h --help               display help." + ln +
+				"-v --verify [expected]     verifies that the computed hash equals" + ln +
+				"                           an expected value.");
 	}
 
 	/**
 	 * entry point for command line usage
 	 */
 	public static void main(String[] args) throws Exception {
+		boolean verify = false;
+		String expected = null;
 		MD5 md5 = new MD5();
 
-		if (args.length > 0 && ("?".equals(args[0]) || "-?".equals(args[0]) || "-h".equals(args[0]) || "--help".equals(args[0]))) {
-			usage();
-			return;
-		}
-
 		if (args.length > 0) {
-			for (int i=0; i<args.length; i++) {
+			if ("?".equals(args[0]) || "-?".equals(args[0]) || "-h".equals(args[0]) || "--help".equals(args[0])) {
+				usage();
+				return;
+			}
+
+			int i = 0;
+			for (; i<args.length; i++) {
+				if ("-v".equals(args[i]) || "--verify".equals(args[i])) {
+					i++;
+					if (i>=args.length) {
+						usage();
+						return;
+					}
+					verify = true;
+					expected = args[i];
+				}
+				else {
+					break;
+				}
+			}
+			for (; i<args.length; i++) {
 				md5.hashFile(args[i]);
 			}
 		}
@@ -431,6 +457,20 @@ public class MD5 {
 			md5.hashInputStream(System.in);
 		}
 
-        System.out.println(Bits.toHexString(md5.doFinal()));
+        if (verify) {
+        	String hash = Bits.toHexString(md5.doFinal());
+        	if (expected.toLowerCase().equals(hash)) {
+        		System.out.println("ok");
+        	}
+        	else {
+        		System.out.println("Computed MD5 hash value does not match expected value:");
+        		System.out.println("expected= " + expected);
+        		System.out.println("computed= " + hash);
+        	}
+        }
+        else {
+        	System.out.println(Bits.toHexString(md5.doFinal()));
+        }
+
 	}
 }

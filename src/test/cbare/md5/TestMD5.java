@@ -125,4 +125,12 @@ public class TestMD5 extends TestCase {
 		System.out.println("md5( file ) = " + Bits.toHexString(hash));
 		assertEquals("57edf4a22be3c955ac49da2e2107b67a", Bits.toHexString(hash));
 	}
+
+	public void testFiles() throws Exception {
+		md5.hashFile("classpath:test1.txt");
+		md5.hashFile("classpath:test2.txt");
+		byte[] hash = md5.doFinal();
+		System.out.println("md5( file ) = " + Bits.toHexString(hash));
+		assertEquals("70538c9c758ec5b11e777a03be07efac", Bits.toHexString(hash));
+	}
 }
