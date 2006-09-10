@@ -1,0 +1,36 @@
+<!-- Ant build script -->
+<project name="MD5" default="all" basedir=".">
+
+	<!-- global properties -->
+ 	<property name="src.dir"       location="${basedir}/src/main"/>
+ 	<property name="test.dir"      location="${basedir}/src/test"/>
+
+ 	<property name="lib.dir"       location="${basedir}/lib"/>
+ 	<property name="build.dir"     location="${basedir}/classes"/>
+ 	<property name="dist.dir"      location="${basedir}/dist"/>
+
+	<path id="class.path">
+		<pathelement location="${build.dir}" />
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+	</path>
+
+    <target name="copy-resources">
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+
+	<target name="compile" description="compile java files">
+		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="true">
+			<classpath refid="class.path" />
+		</javac>
+    </target>
+
+	<target name="all" depends="compile, copy-resources">
+	</target>
+
+</project>
