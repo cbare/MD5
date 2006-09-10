@@ -13,7 +13,7 @@ import java.io.InputStream;
  * or correctness.
  * <p>
  * TODO: zero out copies of input and intermediate data.
- * TODO: implement javax.crypto.Mac
+ * TODO: implement javax.crypto.MacSpi
  *
  * @author christopherbare@cbare.org
  * @date 2006.03.26

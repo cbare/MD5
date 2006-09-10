@@ -27,6 +27,9 @@ public class TestBits extends TestCase {
     }
 
     public void testToBigEndianInt() {
-
+    	byte[] b = { (byte)0x11, (byte)0x22, (byte)0x33, (byte)0x44 };
+    	int i = Bits.toBigEndianInt(b, 0);
+    	assertEquals(0x44332211, i);
+    	System.out.println(Integer.toHexString(i));
     }
 }

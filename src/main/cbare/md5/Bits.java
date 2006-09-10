@@ -2,11 +2,19 @@ package cbare.md5;
 
 /**
  * bit twiddling functions
- * @author Chris
+ *
+ * @author christopherbare@cbare.org
+ * @date 2006.03.26
  */
 public class Bits {
 
 
+	/**
+	 * Convert the given array of bytes to an int using the
+	 * first byte as the most significant.
+	 * @param b byte array
+	 * @param offset offset into byte array
+	 */
 	public static int toInt(byte[] b, int offset) {
 		return ((b[offset] & 0xFF) << 24)
 		| ((b[offset+1] & 0xFF) << 16)
@@ -15,8 +23,9 @@ public class Bits {
 	}
 
 	/**
-	 * convert a byte array to an int in most-significant-byte
-	 * first order
+	 * convert a byte array to an int in least significant byte
+	 * first order. {0x11, 0x22, 0x33, 0x44} becomes 0x44332211.
+	 * @param offset offset into byte array
 	 */
 	public static int toBigEndianInt(byte[] bytes, int offset) {
 		return ((bytes[offset+3] & 0xFF) << 24)
@@ -25,22 +34,38 @@ public class Bits {
 		| (bytes[offset] & 0xFF);
 	}
 
+	/**
+	 * Convert the given long to an array of 8 bytes with the
+	 * most significant byte first in the array.
+	 */
 	public static byte[] toBytes(long l) {
 		byte[] b = new byte[8];
 		for (int i=7; i>=0; i--) {
+			// grab the least significant byte
 			b[i] = (byte)(l & 0xFFL);
+			// shift right by one byte
 			l = l >> 8;
 		}
 		return b;
 	}
 
+	/**
+	 * Convert the given long to an array of 8 bytes with the
+	 * most significant byte first in the array.
+	 */
 	public static void toBytes(long l, byte[] b, int offset) {
 		for (int i=7; i>=0; i--) {
+			// grab the least significant byte
 			b[offset + i] = (byte)(l & 0xFFL);
+			// shift right by one byte
 			l = l >> 8;
 		}
 	}
 
+	/**
+	 * Convert the int to 4 bytes with the most significant
+	 * byte first.
+	 */
 	public static byte[] toBytes(int a) {
 		byte[] b = new byte[4];
 		for (int i=3; i>=0; i--) {
@@ -90,11 +115,32 @@ public class Bits {
 		}
 	}
 
+	/**
+	 * Rotate the bits of the given int a by s positions.
+	 */
     public static int leftRotate(int a, int s) {
     	s %= 32;
         return (a << s) | (a >>> (32-s));
     }
 
+    /**
+     * Reverses the order of the bytes in the given int.
+     * Given 0x11223344 will return 0x44332211.
+     */
+    public static int rev(int x) {
+        return (x>>>24) | ((x>>>8) &0x0000FF00) | ((x<<8) & 0x00FF0000) | (x<<24);
+    }
+
+
+	public static byte[] hexStringToByteArray(String hex) {
+		int len = hex.length() / 2;
+		byte[] bytes = new byte[len];
+
+		for (int i=0; i<len; i++) {
+			bytes[i] = Byte.parseByte(hex.substring(i*2,i*2+2));
+		}
+		return bytes;
+	}
 
 	public static String toHexString(byte[] b) {
 		StringBuilder sb = new StringBuilder();
@@ -124,10 +170,6 @@ public class Bits {
         return sb.toString();
     }
 
-    public static int rev(int x) {
-        return (x>>>24) | ((x>>>8) &0x0000FF00) | ((x<<8) & 0x00FF0000) | (x<<24);
-    }
-
     public static String arrayToStringBigEndian(int[] a) {
         StringBuilder sb = new StringBuilder("[");
         if (a.length > 0) {
@@ -151,16 +193,5 @@ public class Bits {
 		sb.append("]");
 		return sb.toString();
 	}
-
-	public static byte[] hexStringToByteArray(String hex) {
-		int len = hex.length() / 2;
-		byte[] bytes = new byte[len];
-
-		for (int i=0; i<len; i++) {
-			bytes[i] = Byte.parseByte(hex.substring(i*2,i*2+2));
-		}
-		return bytes;
-	}
-
 
 }
