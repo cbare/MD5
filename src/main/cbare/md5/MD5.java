@@ -398,73 +398,36 @@ public class MD5 {
 	}
 
 
-	public static void usage() {
-		String ln = System.getProperty("line.separator");
-		System.out.println(
-			"=====" + ln +
-			" MD5" + ln +
-			"=====" + ln + ln +
-			"> java cbare.md5.MD5 [opts] [filename] [filename2] ..." + ln + ln +
-			"Implements the MD5 cryptographic hash function. If filename(s) are given," + ln +
-			"the program computes the hash code of the given file(s). If no filename is" + ln +
-			"given, the program reads input from the standard input stream. The program" + ln +
-			"then prints the MD5 hash code to the standard output stream. ");
-		System.out.println( ln +
-				"**Warning: MD5 is no longer recommended and this implementation is not" + ln +
-				"well tested, so don't rely on it for security.");
-		System.out.println( ln +
-				"Options:" + ln +
-				"-------" + ln +
-				"-? -h --help               display help." + ln +
-				"-v --verify [expected]     verifies that the computed hash equals" + ln +
-				"                           an expected value.");
-	}
-
 	/**
 	 * entry point for command line usage
 	 */
 	public static void main(String[] args) throws Exception {
-		boolean verify = false;
-		String expected = null;
+		Options options = new Options(args);
+		if (options.done())
+			return;
+
 		MD5 md5 = new MD5();
 
-		if (args.length > 0) {
-			if ("?".equals(args[0]) || "-?".equals(args[0]) || "-h".equals(args[0]) || "--help".equals(args[0])) {
-				usage();
-				return;
-			}
-
-			int i = 0;
-			for (; i<args.length; i++) {
-				if ("-v".equals(args[i]) || "--verify".equals(args[i])) {
-					i++;
-					if (i>=args.length) {
-						usage();
-						return;
-					}
-					verify = true;
-					expected = args[i];
-				}
-				else {
-					break;
-				}
-			}
-			for (; i<args.length; i++) {
-				md5.hashFile(args[i]);
+		if (options.stringInput()) {
+			md5.update(options.getInput().getBytes("US-ASCII"));
+		}
+		else if (options.hasFilenames()) {
+			for (String filename : options.getFilenames()) {
+				md5.hashFile(filename);
 			}
 		}
 		else {
 			md5.hashInputStream(System.in);
 		}
 
-        if (verify) {
+		if (options.verify()) {
         	String hash = Bits.toHexString(md5.doFinal());
-        	if (expected.toLowerCase().equals(hash)) {
+        	if (options.getExpected().toLowerCase().equals(hash)) {
         		System.out.println("ok");
         	}
         	else {
         		System.out.println("Computed MD5 hash value does not match expected value:");
-        		System.out.println("expected= " + expected);
+        		System.out.println("expected= " + options.getExpected());
         		System.out.println("computed= " + hash);
         	}
         }

@@ -24,13 +24,41 @@
         </copy>
     </target>
 
+	<target name="init" description="Get setup">
+		<!-- Create the time stamp -->
+		<tstamp>
+			<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss"/>
+		</tstamp>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+		<delete dir="${dist.dir}"/>
+		<mkdir dir="${build.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+	</target>
+
 	<target name="compile" description="compile java files">
 		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="true">
 			<classpath refid="class.path" />
 		</javac>
     </target>
 
-	<target name="all" depends="compile, copy-resources">
+	<target name="jar" depends="init, clean, compile" description="build jar">
+		<jar destfile="${dist.dir}/md5.jar">
+			<manifest>
+				<attribute name="Built-By" value="cbare"/>
+				<attribute name="Built-On" value="${timestamp}" />
+				<attribute name="Main-Class" value="cbare.md5.MD5" />
+			</manifest>
+			<fileset dir="${build.dir}">
+				<exclude name="Test*.java" />
+				<exclude name="test*.txt" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="all" depends="init, clean, compile, copy-resources">
 	</target>
 
 </project>
