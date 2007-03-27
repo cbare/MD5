@@ -24,7 +24,7 @@ public class Options {
 			"=====" + ln +
 			" MD5" + ln +
 			"=====" + ln + ln +
-			"> java cbare.md5.MD5 [opts] [filename] [filename2] ..." + ln + ln +
+			"> java -jar md5.jar [opts] [filename] [filename2] ..." + ln + ln +
 			"Implements the MD5 cryptographic hash function. If filename(s) are given," + ln +
 			"the program computes the hash code of the given file(s). If no filename is" + ln +
 			"given, the program reads input from the standard input stream. The program" + ln +
