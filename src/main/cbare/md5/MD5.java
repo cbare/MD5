@@ -432,6 +432,8 @@ public class MD5 {
         	}
         }
         else {
+        	if (options.stringInput())
+        		System.out.print("md5(" + options.getInput() + ") = ");
         	System.out.println(Bits.toHexString(md5.doFinal()));
         }
 

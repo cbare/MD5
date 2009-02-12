@@ -133,4 +133,15 @@ public class TestMD5 extends TestCase {
 		System.out.println("md5( file ) = " + Bits.toHexString(hash));
 		assertEquals("70538c9c758ec5b11e777a03be07efac", Bits.toHexString(hash));
 	}
+
+	/**
+	 * tests derived from a thread called 'Hashing Hysterics' on the seajug
+	 * mailing list.
+	 * @throws Exception
+	 */
+	public void testSeaJug() throws Exception {
+		md5Test("4aae27d40e85969582f19011336bab9a", "myPlainTextOhYesmyPassPhrase");
+		md5Test("947b963e442bf7a0b77e7910700d7daa", "myPlainTextOhYesmy PassPhrase");
+		md5Test("cffee182fcf954a4cfb63e174c472007", "myPlainTextOhYesmyPassPhrase\n");
+	}
 }

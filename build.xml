@@ -11,9 +11,11 @@
 
 	<path id="class.path">
 		<pathelement location="${build.dir}" />
+		<!--
         <fileset dir="${lib.dir}">
             <include name="*.jar"/>
         </fileset>
+        -->
 	</path>
 
     <target name="copy-resources">

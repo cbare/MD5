@@ -1,0 +1,4 @@
+#!/bin/sh
+# shell script for invoking the md5 program from the command line
+# insert your path here
+java -jar /Users/cbare/bin/md5.jar "$@"
